@@ -6,7 +6,7 @@ import os
 from dotenv import load_dotenv
 
 # --- Configuration ---
-# 1. REPLACE THIS WITH YOUR ACTUAL BOT TOKEN
+# 1. Load token from .env file
 load_dotenv()
 TOKEN = os.getenv("DISCORD_TOKEN") 
 COMMAND_PREFIX = '/'
@@ -30,6 +30,9 @@ YTDL_OPTIONS = {
     'format': 'bestaudio/best',
     'noplaylist': True,
     'nocheckcertificate': True,
+    # 🚨 FIX FOR YOUTUBE AUTHENTICATION ERROR 🚨
+    # This tells yt-dlp to use cookies from a file named 'cookies.txt'
+    'cookiefile': 'cookies.txt', 
     'ignoreerrors': False,
     'logtostderr': False,
     'quiet': True,
@@ -124,7 +127,7 @@ async def play(ctx, *, query):
     
     # 2. Check for current playback (Basic, no queueing implemented yet)
     if ctx.voice_client.is_playing() or ctx.voice_client.is_paused():
-        return await ctx.send("I am currently playing/paused. Please use `!stop` before playing a new song.")
+        return await ctx.send("I am currently playing/paused. Please use `/stop` before playing a new song.")
 
     try:
         # 3. Use the corrected 'typing' context manager
@@ -165,12 +168,13 @@ async def resume(ctx):
 # --- Run the Bot ---
 
 if __name__ == '__main__':
-    if TOKEN == 'YOUR_BOT_TOKEN_HERE':
-        print("\n!!! ERROR: Please replace 'YOUR_BOT_TOKEN_HERE' in the script with your actual bot token. !!!\n")
+    # Checking if the token was loaded from the environment
+    if TOKEN is None:
+        print("\n!!! ERROR: DISCORD_TOKEN environment variable not found. Check your .env file or environment settings. !!!\n")
     else:
         try:
             bot.run(TOKEN)
         except discord.LoginFailure:
-            print("\n!!! ERROR: Invalid token provided. Please check your bot token. !!!\n")
+            print("\n!!! ERROR: Invalid token provided. Please check your DISCORD_TOKEN environment variable. !!!\n")
         except Exception as e:
             print(f"\n!!! An unexpected error occurred: {e} !!!\n")
